@@ -77,5 +77,5 @@ An intelligent full-stack web application that helps users prepare for job inter
 ### 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
-cd your-repo-name
+git clone [https://github.com/your-username/your-repo-name.git](https://github.com/ankvish-Hub/InterviewIQ)
+cd InterviewIQ
