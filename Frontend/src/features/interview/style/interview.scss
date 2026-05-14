@@ -484,33 +484,38 @@ $severity-low: #3fb950;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #eef2ff, #dbeafe);
+  background: linear-gradient(135deg, #0f172a, #1e293b);
 
   .loader-container {
     text-align: center;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 40px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 
     h1 {
-      font-size: 24px;
-      font-weight: 600;
-      color: #1f2937;
-      margin-bottom: 8px;
+      font-size: 26px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 10px;
     }
 
     p {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 20px;
+      font-size: 15px;
+      color: #cbd5e1;
+      margin-bottom: 25px;
     }
   }
 
-  // 🔄 Spinner
+  /* 🔄 Spinner */
   .spinner {
     width: 60px;
     height: 60px;
-    border: 5px solid #3b82f6;
-    border-top: 5px solid transparent;
+    border: 5px solid rgba(255, 255, 255, 0.2);
+    border-top: 5px solid #38bdf8;
     border-radius: 50%;
-    margin: 0 auto 20px;
+    margin: 0 auto 25px;
     animation: spin 1s linear infinite;
   }
 
@@ -520,18 +525,19 @@ $severity-low: #3fb950;
     }
   }
 
-  // 🔵 Bouncing dots
+  /* 🔵 Bouncing dots */
   .dots {
     display: flex;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
 
     span {
-      width: 8px;
-      height: 8px;
-      background: #3b82f6;
+      width: 10px;
+      height: 10px;
+      background: #38bdf8;
       border-radius: 50%;
       animation: bounce 1.4s infinite ease-in-out both;
+      box-shadow: 0 0 10px #38bdf8;
 
       &:nth-child(2) {
         animation-delay: 0.2s;
@@ -544,11 +550,16 @@ $severity-low: #3fb950;
   }
 
   @keyframes bounce {
-    0%, 80%, 100% {
-      transform: scale(0);
+    0%,
+    80%,
+    100% {
+      transform: scale(0.4);
+      opacity: 0.5;
     }
+
     40% {
       transform: scale(1);
+      opacity: 1;
     }
   }
 }
