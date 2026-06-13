@@ -13,13 +13,18 @@ const allowedOrigins = [
 ].filter(Boolean)
 
 app.use(cors({
-    origin: allowedOrigins,
+    origin: ['https://interview-iq-virid.vercel.app/'],
     credentials: true
 }))
 
 app.get("/health", (req, res) => {
     res.status(200).json({ status: "ok" })
 })
+
+// Agar aapke code mein ye root route nahi hai, toh browser "Cannot GET /" dikhaega
+app.get('/', (req, res) => {
+    res.send("Backend is running successfully!");
+});
 
 /* require all the routes here */
 const authRouter = require("./routes/auth.routes")
