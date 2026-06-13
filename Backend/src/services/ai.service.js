@@ -50,7 +50,7 @@ Job Description: ${jobDescription}`;
 }
 
 /**
- * ✅ FIXED PUPPETEER FUNCTION
+ * FIXED PUPPETEER FUNCTION
  */
 async function generatePdfFromHtml(htmlContent) {
     try {
@@ -58,15 +58,13 @@ async function generatePdfFromHtml(htmlContent) {
 
         const browser = await puppeteer.launch({
             headless: true,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
-            executablePath:
-                "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", // ✅ FIX
+            args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
         });
 
         const page = await browser.newPage();
 
         await page.setContent(htmlContent, {
-            waitUntil: "domcontentloaded", // ✅ FIX (networkidle0 sometimes fails)
+            waitUntil: "domcontentloaded", //  FIX (networkidle0 sometimes fails)
         });
 
         const pdfBuffer = await page.pdf({
@@ -85,7 +83,7 @@ async function generatePdfFromHtml(htmlContent) {
         return pdfBuffer;
 
     } catch (error) {
-        console.error("🔥 PUPPETEER ERROR:", error);
+        console.error("PUPPETEER ERROR:", error);
         throw error;
     }
 }
