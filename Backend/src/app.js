@@ -21,5 +21,10 @@ app.use("/api/auth", authRouter)
 app.use("/api/interview", interviewRouter)
 
 
+app.get('/', (req, res) => {
+    res.send('Server is running smoothly!');
+});
+
+
 
 module.exports = app
