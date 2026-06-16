@@ -62,18 +62,33 @@ export const useInterview = () => {
 
     const getResumePdf = async (interviewReportId) => {
         setLoading(true)
-        let response = null
         try {
-            response = await generateResumePdf({ interviewReportId })
-            const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
+            const response = await generateResumePdf({ interviewReportId })
+            const pdfBlob = new Blob([response], { type: "application/pdf" })
+
+            // If backend returned JSON error (as a blob), surface the message
+            if (pdfBlob.type === "application/json") {
+                const text = await pdfBlob.text()
+                try {
+                    const json = JSON.parse(text)
+                    alert(json.message || "Resume download failed.")
+                } catch (e) {
+                    alert("Resume download failed.")
+                }
+                return
+            }
+
+            const url = window.URL.createObjectURL(pdfBlob)
             const link = document.createElement("a")
             link.href = url
             link.setAttribute("download", `resume_${interviewReportId}.pdf`)
             document.body.appendChild(link)
             link.click()
-        }
-        catch (error) {
-            console.log(error)
+            link.remove()
+            window.URL.revokeObjectURL(url)
+        } catch (error) {
+            console.error("Resume download error:", error)
+            alert("Resume download failed. Please try again.")
         } finally {
             setLoading(false)
         }

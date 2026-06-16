@@ -2,13 +2,16 @@ const { GoogleGenAI } = require("@google/genai");
 const { z } = require("zod");
 const { zodToJsonSchema } = require("zod-to-json-schema");
 const puppeteer = require("puppeteer");
+const PDFDocument = require("pdfkit");
 
-if (!process.env.GOOGLE_GENAI_API_KEY) {
-    throw new Error("GOOGLE_GENAI_API_KEY environment variable is not set")
+const googleGenAiApiKey = process.env.GOOGLE_GENAI_API_KEY || process.env.GEMINI_API_KEY
+
+if (!googleGenAiApiKey) {
+    throw new Error("GOOGLE_GENAI_API_KEY or GEMINI_API_KEY environment variable is not set")
 }
 
 const ai = new GoogleGenAI({
-    apiKey: process.env.GOOGLE_GENAI_API_KEY
+    apiKey: googleGenAiApiKey
 });
 
 const interviewReportSchema = z.object({
@@ -93,7 +96,94 @@ async function generatePdfFromHtml(htmlContent) {
 
     } catch (error) {
         console.error("PUPPETEER ERROR:", error);
-        throw error;
+        // Fallback: use PDFKit to create a simple PDF if Puppeteer/Chrome is not available
+        try {
+            console.warn("Falling back to pdfkit for PDF generation.");
+
+            // Improved HTML-aware rendering into PDF using PDFKit.
+            // Handles headings, paragraphs, ordered/unordered lists, bold and italics, and <br>.
+            const doc = new PDFDocument({ autoFirstPage: true, margin: 40 })
+
+            const buffers = []
+            doc.on('data', (chunk) => buffers.push(chunk))
+            doc.on('end', () => {})
+
+            // Default font
+            doc.font('Helvetica')
+            doc.fontSize(12)
+
+            // Tokenize simple HTML into tags and text
+            const tokens = String(htmlContent).match(/<[^>]+>|[^<]+/g) || [String(htmlContent)]
+            const tagStack = []
+            const listCounters = []
+
+            for (let raw of tokens) {
+                raw = raw.replace(/\r/g, '')
+                if (!raw) continue
+
+                if (raw.startsWith('<')) {
+                    const tag = raw.replace(/[<>\/]/g, '').split(/\s+/)[0].toLowerCase()
+                    const isClosing = /^<\//.test(raw)
+
+                    if (!isClosing) {
+                        // Opening tags
+                        tagStack.push(tag)
+                        if (tag === 'h1') { doc.moveDown(0.6); doc.fontSize(20); doc.font('Helvetica-Bold') }
+                        else if (tag === 'h2') { doc.moveDown(0.5); doc.fontSize(16); doc.font('Helvetica-Bold') }
+                        else if (tag === 'h3') { doc.moveDown(0.4); doc.fontSize(14); doc.font('Helvetica-Bold') }
+                        else if (tag === 'p') { /* paragraph start */ }
+                        else if (tag === 'br') { doc.moveDown(0.3) }
+                        else if (tag === 'ul') { listCounters.push(null) }
+                        else if (tag === 'ol') { listCounters.push(1) }
+                        else if (tag === 'li') { /* list item; handled when text appears */ }
+                        else if (tag === 'strong' || tag === 'b') { doc.font('Helvetica-Bold') }
+                        else if (tag === 'em' || tag === 'i') { doc.font('Helvetica-Oblique') }
+                    } else {
+                        // Closing tags
+                        const closeTag = tag
+                        // pop until we remove the matching open tag
+                        for (let i = tagStack.length - 1; i >= 0; i--) {
+                            if (tagStack[i] === closeTag) { tagStack.splice(i, 1); break }
+                        }
+
+                        if (closeTag === 'h1' || closeTag === 'h2' || closeTag === 'h3') { doc.fontSize(12); doc.font('Helvetica'); doc.moveDown(0.3) }
+                        else if (closeTag === 'p') { doc.moveDown(0.3) }
+                        else if (closeTag === 'ul' || closeTag === 'ol') { listCounters.pop(); doc.moveDown(0.1) }
+                        else if (closeTag === 'li') { doc.moveDown(0.1) }
+                        else if (closeTag === 'strong' || closeTag === 'b' || closeTag === 'em' || closeTag === 'i') { doc.font('Helvetica') }
+                    }
+                } else {
+                    // Plain text node
+                    let text = raw.replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim()
+                    if (!text) continue
+
+                    const currentTag = tagStack[tagStack.length - 1]
+                    if (currentTag === 'li') {
+                        const parent = tagStack.slice().reverse().find(t => t === 'ul' || t === 'ol')
+                        if (parent === 'ol') {
+                            const idx = listCounters[listCounters.length - 1] || 1
+                            doc.text(`${idx}. ${text}`, { indent: 20 })
+                            listCounters[listCounters.length - 1] = idx + 1
+                        } else {
+                            doc.text(`• ${text}`, { indent: 20 })
+                        }
+                    } else {
+                        doc.text(text)
+                    }
+                }
+            }
+
+            doc.end()
+
+            const pdfBuffer = await new Promise((resolve) => {
+                doc.on('end', () => resolve(Buffer.concat(buffers)))
+            })
+
+            return pdfBuffer
+        } catch (fallbackError) {
+            console.error('PDFKit fallback failed:', fallbackError)
+            throw error // rethrow original puppeteer error
+        }
     }
 }
 
