@@ -8,6 +8,7 @@ const app = express()
 const allowedOrigins = [
     "http://localhost:5173",           // Local development
     "http://localhost:3000",           // Alternative local
+    "https://interview-iq-virid.vercel.app", // Production frontend
     process.env.FRONTEND_URL || "https://interview-iq-virid.vercel.app" // Production
 ]
 
@@ -18,10 +19,12 @@ app.use(cors({
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true)
         } else {
+            console.warn(`CORS blocked: ${origin}`)
             callback(new Error("Not allowed by CORS"))
         }
     },
-    credentials: true
+    credentials: true,
+    optionsSuccessStatus: 200
 }))
 
 /* require all the routes here */
