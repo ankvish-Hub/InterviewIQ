@@ -4,10 +4,23 @@ const cors = require("cors")
 
 const app = express()
 
+// Configure CORS for both development and production
+const allowedOrigins = [
+    "http://localhost:5173",           // Local development
+    "http://localhost:3000",           // Alternative local
+    process.env.FRONTEND_URL || "https://interview-iq-virid.vercel.app" // Production
+]
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true)
+        } else {
+            callback(new Error("Not allowed by CORS"))
+        }
+    },
     credentials: true
 }))
 
