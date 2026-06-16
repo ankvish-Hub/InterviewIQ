@@ -3,6 +3,10 @@ const { z } = require("zod");
 const { zodToJsonSchema } = require("zod-to-json-schema");
 const puppeteer = require("puppeteer");
 
+if (!process.env.GOOGLE_GENAI_API_KEY) {
+    throw new Error("GOOGLE_GENAI_API_KEY environment variable is not set")
+}
+
 const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENAI_API_KEY
 });
@@ -32,21 +36,26 @@ const interviewReportSchema = z.object({
 });
 
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
-    const prompt = `Generate an interview report for a candidate with the following details:
+    try {
+        const prompt = `Generate an interview report for a candidate with the following details:
 Resume: ${resume}
 Self Description: ${selfDescription}
 Job Description: ${jobDescription}`;
 
-    const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: zodToJsonSchema(interviewReportSchema),
-        }
-    });
+        const response = await ai.models.generateContent({
+            model: "gemini-1.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: zodToJsonSchema(interviewReportSchema),
+            }
+        });
 
-    return JSON.parse(response.text);
+        return JSON.parse(response.text);
+    } catch (error) {
+        console.error("AI Service Error:", error.message);
+        throw new Error(`Failed to generate interview report: ${error.message}`);
+    }
 }
 
 /**
