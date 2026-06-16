@@ -4,79 +4,94 @@ import { useAuth } from "../hooks/useAuth";
 
 const Register = () => {
   const navigate = useNavigate();
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [success, setSuccess] = useState("");
+
   const { loading, handleRegister } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await handleRegister({ username, email, password });
 
-    setSuccess("Registration successful! Please login to continue.");
+    await handleRegister({
+      username,
+      email,
+      password,
+    });
+
+    setSuccess("Account created successfully!");
 
     setTimeout(() => {
       navigate("/login");
     }, 2000);
   };
 
-  if (loading) {
-    return (
-      <main>
-        <h1>Loading.......</h1>
-      </main>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <main className="auth-page">
+  //       <h1>Loading...</h1>
+  //     </main>
+  //   );
+  // }
 
   return (
-    <main>
+    <main className="auth-page">
       <div className="form-container">
-        <h1>Register</h1>
-        {success && <p style={{ color: "green" }}>{success}</p>}
+        <div className="form-header">
+          <h1>Create Account ✨</h1>
+          <p>Join us and start your journey today.</p>
+        </div>
+
+        {success && <div className="success-message">{success}</div>}
+
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label htmlFor="username">Username</label>
+            <label>Username</label>
             <input
-              onChange={(e) => {
-                setUsername(e.target.value);
-              }}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               type="text"
-              id="username"
-              name="username"
               placeholder="Enter username"
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="email">Email</label>
-            <input
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-              type="email"
-              id="email"
-              name="email"
-              placeholder="Enter email address"
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="password">Password</label>
-            <input
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Enter password"
+              required
             />
           </div>
 
-          <button className="button primary-button">Register</button>
+          <div className="input-group">
+            <label>Email Address</label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              placeholder="john@example.com"
+              required
+            />
+          </div>
+
+          <div className="input-group">
+            <label>Password</label>
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              placeholder="Create a password"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="button register-button"
+            disabled={loading}
+          >
+            {loading ? "Creating Account..." : "Create Account"}
+          </button>
         </form>
 
-        <p>
-          Already have an account? <Link to={"/login"}>Login</Link>{" "}
+        <p className="auth-footer">
+          Already have an account?
+          <Link to="/login"> Sign In</Link>
         </p>
       </div>
     </main>
