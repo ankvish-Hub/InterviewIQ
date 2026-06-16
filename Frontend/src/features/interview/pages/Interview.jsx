@@ -149,11 +149,7 @@ const Interview = () => {
 
           <p>Please wait while we prepare your PDF 📄</p>
 
-          <div className="dots">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
+          
         </div>
       </main>
     );

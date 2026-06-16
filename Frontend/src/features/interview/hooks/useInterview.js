@@ -21,14 +21,13 @@ export const useInterview = () => {
         try {
             response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
             setReport(response.interviewReport)
-            return response.interviewReport
         } catch (error) {
-            console.error("Error generating report:", error.message)
-            alert(`Error: ${error.message}`)
-            return null
+            console.log(error)
         } finally {
             setLoading(false)
         }
+
+        return response.interviewReport
     }
 
     const getReportById = async (interviewId) => {
@@ -62,33 +61,18 @@ export const useInterview = () => {
 
     const getResumePdf = async (interviewReportId) => {
         setLoading(true)
+        let response = null
         try {
-            const response = await generateResumePdf({ interviewReportId })
-            const pdfBlob = new Blob([response], { type: "application/pdf" })
-
-            // If backend returned JSON error (as a blob), surface the message
-            if (pdfBlob.type === "application/json") {
-                const text = await pdfBlob.text()
-                try {
-                    const json = JSON.parse(text)
-                    alert(json.message || "Resume download failed.")
-                } catch (e) {
-                    alert("Resume download failed.")
-                }
-                return
-            }
-
-            const url = window.URL.createObjectURL(pdfBlob)
+            response = await generateResumePdf({ interviewReportId })
+            const url = window.URL.createObjectURL(new Blob([ response ], { type: "application/pdf" }))
             const link = document.createElement("a")
             link.href = url
             link.setAttribute("download", `resume_${interviewReportId}.pdf`)
             document.body.appendChild(link)
             link.click()
-            link.remove()
-            window.URL.revokeObjectURL(url)
-        } catch (error) {
-            console.error("Resume download error:", error)
-            alert("Resume download failed. Please try again.")
+        }
+        catch (error) {
+            console.log(error)
         } finally {
             setLoading(false)
         }
