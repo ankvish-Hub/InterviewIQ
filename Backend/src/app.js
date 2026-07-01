@@ -4,13 +4,14 @@ const cors = require("cors")
 
 const app = express()
 
+const allowedOrigins = process.env.FRONTEND_URLS
+    ? process.env.FRONTEND_URLS.split(",").map(url => url.trim())
+    : ["http://localhost:5173"]
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: [
-        "http://localhost:5173",
-        "https://interview-iq-virid.vercel.app"
-    ],
+    origin: allowedOrigins,
     credentials: true
 }))
 
